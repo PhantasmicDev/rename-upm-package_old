@@ -1,0 +1,11 @@
+name: Rename UPM Package
+author: @PhantasmicDev
+description: Pack or unpack .unitypackage files without the Unity editor or Unity project folder.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run Code
+      run: |
+        echo "Hello World"
+      shell: bash
