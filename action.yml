@@ -1,11 +1,26 @@
-name: Rename UPM Package
-author: PhantasmicDev
-description: Pack or unpack .unitypackage files without the Unity editor or Unity project folder.
+name: 'Rename UPM Package'
+author: 'PhantasmicDev'
+description: 'Renames and edits files to reflect a name change in package.
+branding:
+  icon: 'edit-3'
+  color: 'gray-dark'
+  
+inputs:
+  company-name:
+    required: true
+  package-name:
+    required: true
+  package-root-path:
+    default: '.'
+  full-name:
+  domain-name-extension:
+    default: 'com'
 
 runs:
   using: "composite"
   steps:
-    - name: Run Code
+    - name: Validate Inputs
+      id: validate-inputs
       run: |
         echo "Hello World"
       shell: bash
