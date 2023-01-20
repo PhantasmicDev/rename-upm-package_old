@@ -1,5 +1,5 @@
 name: Rename UPM Package
-author: "@PhantasmicDev"
+author: PhantasmicDev
 description: Pack or unpack .unitypackage files without the Unity editor or Unity project folder.
 
 runs:
