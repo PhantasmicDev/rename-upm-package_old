@@ -13,7 +13,7 @@ inputs:
   package-root-path:
     default: '.'
   full-name:
-  domain-name-extension:
+  domain-extension:
     default: 'com'
 
 runs:
