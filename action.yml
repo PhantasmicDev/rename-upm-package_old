@@ -19,8 +19,63 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate Inputs
-      id: validate-inputs
+    - name: Gather Names
       run: |
-        echo "Hello World"
+        RUNTIME_ASMDEF_NAME=$(echo "${{ inputs.compnany-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
+        echo "runtime-asmdef-name=$RUNTIME_ASMDEF_NAME" >> $GITHUB_ENV
+        
+        if [ -z "${{ inputs.full-name }} ]; then
+          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$RUNTIME_ASMDEF_NAME" | tr '[:upper:]' '[:lower:]')
+          echo "full-name=$FULL_NAME" >> $GITHUB_ENV
+          echo "full package name was not provided so generated name '$FULL_NAME' will be used"
+        else
+          echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
       shell: bash
+      
+    - name: Update package.json
+      run: echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ inputs.package-root-path }}"/package.json`" > "${{ inputs.package-root-path }}"/package.json
+      
+    - name: Rename Assembly Definition Files
+      run: |
+        function rename_asmdef {
+          if [ -n $1 ]; then
+            RENAMED_ASMDEF=$(dirname "$1")/"$2".asmdef
+            
+            mv "$1" "$RENAMED_ASMDEF"
+            
+            if [ -n "$1".meta ]; then
+              mv "$1".meta "$RENAMED_ASMDEF".meta
+            else
+              echo "No '.meta' file was found to rename for "$1"' >&2
+            fi
+            
+            echo "$RENAMED_ASMDEF"
+        }
+        
+        RUNTIME_ASMDEF=$(find "${{ inputs.package-root-path }}"/Runtime -name "*.asmdef" -type f -quit)
+        if [ -n "$RUNTIME_ASMDEF" ]; then
+          echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}") >> $GITHUB_ENV
+        else
+          echo 'Notice: No Runtime assembly definition file was found.'
+        fi
+        
+        EDITOR_ASMDEF=$(find "${{ inputs.package-root-path }}"/Editor -name "*.asmdef" -type f -quit)
+        if [ -n "$EDITOR_ASMDEF" ]; then
+          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.runtime-asmdef-name }}".Editor) >> $GITHUB_ENV
+        else
+          echo 'Notice: No Editor assembly definition file was found.'
+        fi
+        
+        RUNTIME_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
+        if [ -n "$RUNTIME_TESTS_ASMDEF" ]; then
+          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-asmdef-name }}".Tests) >> $GITHUB_ENV
+        else
+          echo 'Notice: No Runtime Test assembly definition file was found.'
+        fi
+        
+        EDITOR_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Editor -name "*.asmdef" -type f -quit)
+        if [ -n "$EDITOR_TESTS_ASMDEF" ]; then
+          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.runtime-asmdef-name }}".Editor.Tests) >> $GITHUB_ENV
+        else
+          echo 'Notice: No Editor Test assembly definition file was found.'
+        fi
