@@ -91,14 +91,16 @@ runs:
       
       - name: Update Assembly Definition Files
         run: |
+          declare -A OLD_TO_NEW_REFERENCES
+          
           function update_asmdef() {
             local ASMDEF_FILE=$1
             local ASMDEF_NAME=$2
             
+            OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
+            
             echo $(jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE") > "$ASMDEF_FILE"
             echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
-            
-            if [ -z "$3" ]; then return; fi
             
             function update_references() {
               local OLD_REFERENCE=$1
@@ -113,34 +115,26 @@ runs:
                 fi
               done
             }
-            
-            local -n OLD_TO_NEW_REFERENCES=$3
-            
+                        
             for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
               NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$key]}
               update_references $OLD_REFERENCE $NEW_REFERENCE
             done
           }
           
-          declare -A OLD_TO_NEW_REFERENCES
-          
           if [ -n "${{ env.runtime-asmdef }}" ]; then
-            OLD_TO_NEW_REFERENCES["$(jq '.name' "${{ env.runtime-asmdef }}")"]="${{ env.runtime-asmdef-name }}"
             update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
           fi
           
           if [ -n "${{ env.editor-asmdef }}" ]; then
-            OLD_EDITOR_ASMDEF_NAME=$(jq '.name' "${{ env.editor-asmdef }}")
-            
-            if [ -n "$OLD_RUNTIME_ASMDEF_NAME" ]; then
-              OLD_TO_NEW_REFERENCES[$OLD_RUNTIME_ASMDEF_NAME]="${{ env.runtime-asmdef-name }}"
-            fi
-            update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}" OLD_TO_NEW_REFERENCES
+            update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}"
           fi
           
           if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-            OLD_RUNTIME_TESTS_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-tests-asmdef }}")
-            declare -A OLD_TO_NEW_REFERENCES
-            if [ -n "$
+            update_asmdef "${{ env.runtime-tests-asmdef }} "${{ env.runtime-tests-asmdef-name }}"
+          fi
+          
+          if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
+            update_asmdef "${{ env.editor-tests-asmdef }} "${{ env.editor-tests-asmdef-name }}"
           fi
         shell: bash
