@@ -62,28 +62,28 @@ runs:
         
         RUNTIME_ASMDEF=$(find "${{ inputs.package-root-path }}"/Runtime -name "*.asmdef" -type f -quit)
         if [ -n "$RUNTIME_ASMDEF" ]; then
-          echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}") >> $GITHUB_ENV
+          echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}")" >> $GITHUB_ENV
         else
           echo 'Notice: No Runtime assembly definition file was found.'
         fi
         
         EDITOR_ASMDEF=$(find "${{ inputs.package-root-path }}"/Editor -name "*.asmdef" -type f -quit)
         if [ -n "$EDITOR_ASMDEF" ]; then
-          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.editor-asmdef-name }}") >> $GITHUB_ENV
+          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.editor-asmdef-name }}")" >> $GITHUB_ENV
         else
           echo 'Notice: No Editor assembly definition file was found.'
         fi
         
         RUNTIME_TESTS_ASMDEF=$(find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
         if [ -n "$RUNTIME_TESTS_ASMDEF" ]; then
-          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-tests-asmdef-name }}") >> $GITHUB_ENV
+          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-tests-asmdef-name }}")" >> $GITHUB_ENV
         else
           echo 'Notice: No Runtime Tests assembly definition file was found.'
         fi
         
-        EDITOR_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Editor -name "*.asmdef" -type f -quit)
+        EDITOR_TESTS_ASMDEF=$(find "${{ inputs.package-root-path }}"/Tests/Editor -name "*.asmdef" -type f -quit)
         if [ -n "$EDITOR_TESTS_ASMDEF" ]; then
-          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.editor-tests-asmdef-name }}") >> $GITHUB_ENV
+          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.editor-tests-asmdef-name }}")" >> $GITHUB_ENV
         else
           echo 'Notice: No Editor Tests assembly definition file was found.'
         fi
@@ -110,7 +110,7 @@ runs:
                 index=$(echo $entry | jq '.key')
                 value=$(echo $entry | jq -r '.value')
                 if [ "$value" == "$OLD_REFERENCE" ]; then
-                  echo $(jq ".references[$index] |= \"$NEW_REFERENCE"\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
+                  echo $(jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
                   break
                 fi
               done
@@ -131,10 +131,10 @@ runs:
           fi
           
           if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-            update_asmdef "${{ env.runtime-tests-asmdef }} "${{ env.runtime-tests-asmdef-name }}"
+            update_asmdef "${{ env.runtime-tests-asmdef }}" "${{ env.runtime-tests-asmdef-name }}"
           fi
           
           if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-            update_asmdef "${{ env.editor-tests-asmdef }} "${{ env.editor-tests-asmdef-name }}"
+            update_asmdef "${{ env.editor-tests-asmdef }}" "${{ env.editor-tests-asmdef-name }}"
           fi
         shell: bash
