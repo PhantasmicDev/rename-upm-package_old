@@ -48,17 +48,16 @@ runs:
           local ASMDEF=$1
           local NEW_NAME=$2
           
-          if [ -n "$ASMDEF" ]; then
-            RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
-            mv "$ASMDEF" "$RENAMED_ASMDEF"
+          RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
+          mv "$ASMDEF" "$RENAMED_ASMDEF"
+          
+          if [ -n "$ASMDEF".meta ]; then
+            mv "$ASMDEF".meta "$RENAMED_ASMDEF".meta
+          else
+            echo "Notice: No '.meta' file for "$ASMDEF" was found to rename." >&2
+          fi
             
-            if [ -n "$ASMDEF".meta ]; then
-              mv "$ASMDEF".meta "$RENAMED_ASMDEF".meta
-            else
-              echo "Notice: No '.meta' file for "$ASMDEF" was found to rename." >&2
-            fi
-            
-            echo "$RENAMED_ASMDEF"
+          echo "$RENAMED_ASMDEF"
         }
         
         RUNTIME_ASMDEF=$(find "${{ inputs.package-root-path }}"/Runtime -name "*.asmdef" -type f -quit)
