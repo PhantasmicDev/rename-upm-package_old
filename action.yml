@@ -40,13 +40,12 @@ runs:
         function rename_asmdef {
           if [ -n $1 ]; then
             RENAMED_ASMDEF=$(dirname "$1")/"$2".asmdef
-            
             mv "$1" "$RENAMED_ASMDEF"
             
             if [ -n "$1".meta ]; then
               mv "$1".meta "$RENAMED_ASMDEF".meta
             else
-              echo "No '.meta' file was found to rename for "$1"' >&2
+              echo "Notice: No '.meta' file for "$1" was found to rename.' >&2
             fi
             
             echo "$RENAMED_ASMDEF"
@@ -79,3 +78,24 @@ runs:
         else
           echo 'Notice: No Editor Test assembly definition file was found.'
         fi
+      shell: bash
+      
+      - name: Update Assembly Definition Files
+        run: |
+          if [ -n "${{ env.runtime-asmdef }}" ]; then
+            OLD_RUNTIME_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-asmdef }}")
+            jq '.name |= "${{ env.runtime-asmdef-name }}"' "${{ env.runtime-asmdef }}" > "${{ env.runtime-asmdef }}"
+          fi
+            
+          if [ -n "${{ env.editor-asmdef }}" ]; then
+            OLD_EDITOR_ASMDEF_NAME=$(jq '.name' "${{ env.editor-asmdef }}")
+            jq '.name |= "${{ env.runtime-asmdef-name }}".Editor' "${{ env.editor-asmdef }}" > "${{ env.editor-asmdef }}"
+            
+            jq -c '.references[]' "${{ env.editor-asmdef }}" | while read reference; do
+              if [ "$reference" == "$OLD_RUNTIME_ASMDEF_NAME" ]; then
+                jq --argjson reference
+            done
+            
+          fi
+          
+        shell: bash
