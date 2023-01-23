@@ -21,7 +21,7 @@ runs:
   steps:
     - name: Gather Names
       run: |
-        ASMDEF_BASE_NAME=$(echo "${{ inputs.compnany-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
+        ASMDEF_BASE_NAME=$(echo "${{ inputs.company-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
         echo "runtime-asmdef-name="$ASMDEF_BASE_NAME"" >> $GITHUB_ENV
         echo "editor-asmdef-name="$ASMDEF_BASE_NAME".Editor" >> $GITHUB_ENV
         echo "runtime-tests-asmdef-name="$ASMDEF_BASE_NAME".Tests" >> $GITHUB_ENV
