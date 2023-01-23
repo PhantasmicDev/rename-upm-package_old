@@ -90,52 +90,52 @@ runs:
         fi
       shell: bash
       
-      - name: Update Assembly Definition Files
-        run: |
-          declare -A OLD_TO_NEW_REFERENCES
-          
-          function update_asmdef() {
-            local ASMDEF_FILE=$1
-            local ASMDEF_NAME=$2
-            
-            OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
-            
-            echo $(jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE") > "$ASMDEF_FILE"
-            echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
-            
-            function update_references() {
-              local OLD_REFERENCE=$1
-              local NEW_REFERENCE=$2
-              
-              jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
-                index=$(echo $entry | jq '.key')
-                value=$(echo $entry | jq -r '.value')
-                if [ "$value" == "$OLD_REFERENCE" ]; then
-                  echo $(jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
-                  break
-                fi
-              done
-            }
-                        
-            for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
-              NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$key]}
-              update_references $OLD_REFERENCE $NEW_REFERENCE
+    - name: Update Assembly Definition Files
+      run: |
+        declare -A OLD_TO_NEW_REFERENCES
+
+        function update_asmdef() {
+          local ASMDEF_FILE=$1
+          local ASMDEF_NAME=$2
+
+          OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
+
+          echo $(jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE") > "$ASMDEF_FILE"
+          echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
+
+          function update_references() {
+            local OLD_REFERENCE=$1
+            local NEW_REFERENCE=$2
+
+            jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
+              index=$(echo $entry | jq '.key')
+              value=$(echo $entry | jq -r '.value')
+              if [ "$value" == "$OLD_REFERENCE" ]; then
+                echo $(jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
+                break
+              fi
             done
           }
-          
-          if [ -n "${{ env.runtime-asmdef }}" ]; then
-            update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
-          fi
-          
-          if [ -n "${{ env.editor-asmdef }}" ]; then
-            update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}"
-          fi
-          
-          if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-            update_asmdef "${{ env.runtime-tests-asmdef }}" "${{ env.runtime-tests-asmdef-name }}"
-          fi
-          
-          if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-            update_asmdef "${{ env.editor-tests-asmdef }}" "${{ env.editor-tests-asmdef-name }}"
-          fi
-        shell: bash
+
+          for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
+            NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$key]}
+            update_references $OLD_REFERENCE $NEW_REFERENCE
+          done
+        }
+
+        if [ -n "${{ env.runtime-asmdef }}" ]; then
+          update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
+        fi
+
+        if [ -n "${{ env.editor-asmdef }}" ]; then
+          update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}"
+        fi
+
+        if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
+          update_asmdef "${{ env.runtime-tests-asmdef }}" "${{ env.runtime-tests-asmdef-name }}"
+        fi
+
+        if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
+          update_asmdef "${{ env.editor-tests-asmdef }}" "${{ env.editor-tests-asmdef-name }}"
+        fi
+      shell: bash
