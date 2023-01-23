@@ -60,11 +60,15 @@ runs:
           echo "$RENAMED_ASMDEF"
         }
         
-        RUNTIME_ASMDEF=$(find "${{ inputs.package-root-path }}"/Runtime -name "*.asmdef" -type f -quit)
-        if [ -n "$RUNTIME_ASMDEF" ]; then
-          echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}")" >> $GITHUB_ENV
-        else
-          echo 'Notice: No Runtime assembly definition file was found.'
+        # Wrap something like this in a function
+        RUNTIME_DIRECTORY="${{ inputs.package-root-path }}"/Runtime
+        if [ -d "$RUNTIME_DIRECTORY" ]; then
+          RUNTIME_ASMDEF=$(find "$RUNTIME_DIRECTORY" -name "*.asmdef" -type f -quit)
+          if [ -n "$RUNTIME_ASMDEF" ]; then
+            echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}")" >> $GITHUB_ENV
+          else
+            echo 'Notice: No Runtime assembly definition file was found.'
+          fi
         fi
         
         EDITOR_ASMDEF=$(find "${{ inputs.package-root-path }}"/Editor -name "*.asmdef" -type f -quit)
