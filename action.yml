@@ -26,7 +26,7 @@ runs:
         echo "editor-asmdef-name="$ASMDEF_BASE_NAME".Editor" >> $GITHUB_ENV
         echo "runtime-tests-asmdef-name="$ASMDEF_BASE_NAME".Tests" >> $GITHUB_ENV
         echo "editor-tests-asmdef-name="$ASMDEF_BASE_NAME".Editor.Tests" >> $GITHUB_ENV
-        echo "package-json-path="${{ inputs.package-root-path }}"/package.json >> $GITHUB_ENV
+        echo "package-json-path="${{ inputs.package-root-path }}"/package.json" >> $GITHUB_ENV
         
         if [ -n "${{ inputs.full-name }}" ]; then
           echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
