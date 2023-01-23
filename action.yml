@@ -84,17 +84,23 @@ runs:
         run: |
           if [ -n "${{ env.runtime-asmdef }}" ]; then
             OLD_RUNTIME_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-asmdef }}")
-            jq '.name |= "${{ env.runtime-asmdef-name }}"' "${{ env.runtime-asmdef }}" > "${{ env.runtime-asmdef }}"
+            echo $(jq '.name |= "${{ env.runtime-asmdef-name }}"' "${{ env.runtime-asmdef }}") > "${{ env.runtime-asmdef }}"
           fi
             
           if [ -n "${{ env.editor-asmdef }}" ]; then
             OLD_EDITOR_ASMDEF_NAME=$(jq '.name' "${{ env.editor-asmdef }}")
-            jq '.name |= "${{ env.runtime-asmdef-name }}".Editor' "${{ env.editor-asmdef }}" > "${{ env.editor-asmdef }}"
+            echo $(jq '.name |= "${{ env.runtime-asmdef-name }}".Editor' "${{ env.editor-asmdef }}") > "${{ env.editor-asmdef }}"
             
-            jq -c '.references[]' "${{ env.editor-asmdef }}" | while read reference; do
-              if [ "$reference" == "$OLD_RUNTIME_ASMDEF_NAME" ]; then
-                jq --argjson reference
-            done
+            if [ -n $OLD_RUNTIME_ASMDEF_NAME ]
+              jq -c '.references | to_entries[]' "${{ env.editor-asmdef }}" | while read -r entry; do
+                index=$(echo $entry | jq '.key')
+                value=$(echo $entry | jq -r '.value')
+                if [ "$value" == "$OLD_RUNTIME_ASMDEF_NAME" ]; then
+                  echo $(jq ".references[$index] |= \"${{ env.runtime-asmdef-name }}"\"" "${{ env.editor-asmdef }}") > "${{ env.editor-asmdef }}"
+                  break
+                fi
+              done
+            fi
             
           fi
           
