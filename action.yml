@@ -28,11 +28,11 @@ runs:
         echo "editor-tests-asmdef-name="$ASMDEF_BASE_NAME".Editor.Tests" >> $GITHUB_ENV
         echo "package-json-path="${{ inputs.package-root-path }}"/package.json
         
-        if [ -n "${{ inputs.full-name }} ]; then
+        if [ -n "${{ inputs.full-name }}" ]; then
           echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
         else
           FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$ASMDEF_BASE_NAME" | tr '[:upper:]' '[:lower:]' | sed -r 's/[^-_\.]//g')
-          echo "full-name=$FULL_NAME" >> $GITHUB_ENV
+          echo "full-name="$FULL_NAME"" >> $GITHUB_ENV
           echo "full package name was not provided so generated name '$FULL_NAME' will be used"
         fi
       shell: bash
@@ -43,18 +43,18 @@ runs:
       
     - name: Rename Assembly Definition Files
       run: |
-        function rename_asmdef {
+        function rename_asmdef() {
           local ASMDEF=$1
           local NEW_NAME=$2
           
-          if [ -n $1 ]; then
+          if [ -n "$ASMDEF" ]; then
             RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
             mv "$ASMDEF" "$RENAMED_ASMDEF"
             
             if [ -n "$ASMDEF".meta ]; then
               mv "$ASMDEF".meta "$RENAMED_ASMDEF".meta
             else
-              echo "Notice: No '.meta' file for "$ASMDEF" was found to rename.' >&2
+              echo "Notice: No '.meta' file for "$ASMDEF" was found to rename." >&2
             fi
             
             echo "$RENAMED_ASMDEF"
@@ -74,7 +74,7 @@ runs:
           echo 'Notice: No Editor assembly definition file was found.'
         fi
         
-        RUNTIME_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
+        RUNTIME_TESTS_ASMDEF=$(find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
         if [ -n "$RUNTIME_TESTS_ASMDEF" ]; then
           echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-tests-asmdef-name }}") >> $GITHUB_ENV
         else
