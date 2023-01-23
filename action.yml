@@ -13,6 +13,7 @@ inputs:
   package-root-path:
     default: '.'
   full-name:
+    required: false
   domain-extension:
     default: 'com'
 
