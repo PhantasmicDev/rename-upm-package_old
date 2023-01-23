@@ -21,31 +21,40 @@ runs:
   steps:
     - name: Gather Names
       run: |
-        RUNTIME_ASMDEF_NAME=$(echo "${{ inputs.compnany-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
-        echo "runtime-asmdef-name=$RUNTIME_ASMDEF_NAME" >> $GITHUB_ENV
+        ASMDEF_BASE_NAME=$(echo "${{ inputs.compnany-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
+        echo "runtime-asmdef-name="$ASMDEF_BASE_NAME"" >> $GITHUB_ENV
+        echo "editor-asmdef-name="$ASMDEF_BASE_NAME".Editor" >> $GITHUB_ENV
+        echo "runtime-tests-asmdef-name="$ASMDEF_BASE_NAME".Tests" >> $GITHUB_ENV
+        echo "editor-tests-asmdef-name="$ASMDEF_BASE_NAME".Editor.Tests" >> $GITHUB_ENV
+        echo "package-json-path="${{ inputs.package-root-path }}"/package.json
         
-        if [ -z "${{ inputs.full-name }} ]; then
-          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$RUNTIME_ASMDEF_NAME" | tr '[:upper:]' '[:lower:]')
+        if [ -n "${{ inputs.full-name }} ]; then
+          echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
+        else
+          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$ASMDEF_BASE_NAME" | tr '[:upper:]' '[:lower:]' | sed -r 's/[^-_\.]//g')
           echo "full-name=$FULL_NAME" >> $GITHUB_ENV
           echo "full package name was not provided so generated name '$FULL_NAME' will be used"
-        else
-          echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
+        fi
       shell: bash
       
     - name: Update package.json
-      run: echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ inputs.package-root-path }}"/package.json`" > "${{ inputs.package-root-path }}"/package.json
+      run: echo $(jq ".name =| "${{ env.full-name }}" | .displayName =| "${{ inputs.package-name }}"" "${{ env.package-json-path }}") > "${{ env.package-json-path }}"
+      shell: bash
       
     - name: Rename Assembly Definition Files
       run: |
         function rename_asmdef {
+          local ASMDEF=$1
+          local NEW_NAME=$2
+          
           if [ -n $1 ]; then
-            RENAMED_ASMDEF=$(dirname "$1")/"$2".asmdef
-            mv "$1" "$RENAMED_ASMDEF"
+            RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
+            mv "$ASMDEF" "$RENAMED_ASMDEF"
             
-            if [ -n "$1".meta ]; then
-              mv "$1".meta "$RENAMED_ASMDEF".meta
+            if [ -n "$ASMDEF".meta ]; then
+              mv "$ASMDEF".meta "$RENAMED_ASMDEF".meta
             else
-              echo "Notice: No '.meta' file for "$1" was found to rename.' >&2
+              echo "Notice: No '.meta' file for "$ASMDEF" was found to rename.' >&2
             fi
             
             echo "$RENAMED_ASMDEF"
@@ -60,23 +69,23 @@ runs:
         
         EDITOR_ASMDEF=$(find "${{ inputs.package-root-path }}"/Editor -name "*.asmdef" -type f -quit)
         if [ -n "$EDITOR_ASMDEF" ]; then
-          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.runtime-asmdef-name }}".Editor) >> $GITHUB_ENV
+          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.editor-asmdef-name }}") >> $GITHUB_ENV
         else
           echo 'Notice: No Editor assembly definition file was found.'
         fi
         
         RUNTIME_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
         if [ -n "$RUNTIME_TESTS_ASMDEF" ]; then
-          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-asmdef-name }}".Tests) >> $GITHUB_ENV
+          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-tests-asmdef-name }}") >> $GITHUB_ENV
         else
-          echo 'Notice: No Runtime Test assembly definition file was found.'
+          echo 'Notice: No Runtime Tests assembly definition file was found.'
         fi
         
         EDITOR_TESTS_ASMDEF=$find "${{ inputs.package-root-path }}"/Tests/Editor -name "*.asmdef" -type f -quit)
         if [ -n "$EDITOR_TESTS_ASMDEF" ]; then
-          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.runtime-asmdef-name }}".Editor.Tests) >> $GITHUB_ENV
+          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.editor-tests-asmdef-name }}") >> $GITHUB_ENV
         else
-          echo 'Notice: No Editor Test assembly definition file was found.'
+          echo 'Notice: No Editor Tests assembly definition file was found.'
         fi
       shell: bash
       
@@ -113,15 +122,25 @@ runs:
             done
           }
           
+          declare -A OLD_TO_NEW_REFERENCES
+          
           if [ -n "${{ env.runtime-asmdef }}" ]; then
-            OLD_RUNTIME_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-asmdef }}")
+            OLD_TO_NEW_REFERENCES["$(jq '.name' "${{ env.runtime-asmdef }}")"]="${{ env.runtime-asmdef-name }}"
             update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
           fi
-            
+          
           if [ -n "${{ env.editor-asmdef }}" ]; then
             OLD_EDITOR_ASMDEF_NAME=$(jq '.name' "${{ env.editor-asmdef }}")
-            declare -A OLD_TO_NEW_REFERENCES=( ["$OLD_RUNTIME_ASMDEF_NAME"]="${{ env.runtime-asmdef-name }}" )
-            update_asmdef "${{ env.editor-asmdef }}" "${{ env.runtime-asmdef-name }}".Editor OLD_TO_NEW_REFERENCES
+            
+            if [ -n "$OLD_RUNTIME_ASMDEF_NAME" ]; then
+              OLD_TO_NEW_REFERENCES[$OLD_RUNTIME_ASMDEF_NAME]="${{ env.runtime-asmdef-name }}"
+            fi
+            update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}" OLD_TO_NEW_REFERENCES
           fi
           
+          if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
+            OLD_RUNTIME_TESTS_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-tests-asmdef }}")
+            declare -A OLD_TO_NEW_REFERENCES
+            if [ -n "$
+          fi
         shell: bash
