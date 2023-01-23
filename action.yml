@@ -1,6 +1,6 @@
 name: 'Rename UPM Package'
 author: 'PhantasmicDev'
-description: 'Renames and edits files to reflect a name change in package.
+description: 'Renames and edits files to reflect a name change in package.'
 branding:
   icon: 'edit-3'
   color: 'gray-dark'
@@ -115,24 +115,13 @@ runs:
           
           if [ -n "${{ env.runtime-asmdef }}" ]; then
             OLD_RUNTIME_ASMDEF_NAME=$(jq '.name' "${{ env.runtime-asmdef }}")
-            echo $(jq '.name |= "${{ env.runtime-asmdef-name }}"' "${{ env.runtime-asmdef }}") > "${{ env.runtime-asmdef }}"
+            update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
           fi
             
           if [ -n "${{ env.editor-asmdef }}" ]; then
             OLD_EDITOR_ASMDEF_NAME=$(jq '.name' "${{ env.editor-asmdef }}")
-            echo $(jq '.name |= "${{ env.runtime-asmdef-name }}".Editor' "${{ env.editor-asmdef }}") > "${{ env.editor-asmdef }}"
-            
-            if [ -n $OLD_RUNTIME_ASMDEF_NAME ]
-              jq -c '.references | to_entries[]' "${{ env.editor-asmdef }}" | while read -r entry; do
-                index=$(echo $entry | jq '.key')
-                value=$(echo $entry | jq -r '.value')
-                if [ "$value" == "$OLD_RUNTIME_ASMDEF_NAME" ]; then
-                  echo $(jq ".references[$index] |= \"${{ env.runtime-asmdef-name }}"\"" "${{ env.editor-asmdef }}") > "${{ env.editor-asmdef }}"
-                  break
-                fi
-              done
-            fi
-            
+            declare -A OLD_TO_NEW_REFERENCES=( ["$OLD_RUNTIME_ASMDEF_NAME"]="${{ env.runtime-asmdef-name }}" )
+            update_asmdef "${{ env.editor-asmdef }}" "${{ env.runtime-asmdef-name }}".Editor OLD_TO_NEW_REFERENCES
           fi
           
         shell: bash
