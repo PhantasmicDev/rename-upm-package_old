@@ -93,7 +93,7 @@ runs:
 
           OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
 
-          echo "`jq '.name='$ASMDEF_NAME'' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
+          echo "`jq ".name='$ASMDEF_NAME'" "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
           echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
 
           function update_references() {
