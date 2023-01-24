@@ -39,7 +39,9 @@ runs:
       shell: bash
       
     - name: Update package.json
-      run: echo $(jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ env.package-json-path }}") > "${{ env.package-json-path }}"
+      run: |
+        echo "Full name: ${{ env.full-name }}"
+        echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ env.package-json-path }}"`" > "${{ env.package-json-path }}"
       shell: bash
       
     - name: Rename Assembly Definition Files
