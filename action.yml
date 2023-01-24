@@ -104,6 +104,7 @@ runs:
             jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
               index=$(echo $entry | jq '.key')
               value=$(echo $entry | jq -r '.value')
+              echo "Index: $index | Value: $value"
               if [ "$value" == "$OLD_REFERENCE" ]; then
                 echo $(jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
                 break
