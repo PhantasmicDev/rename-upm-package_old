@@ -47,7 +47,8 @@ runs:
         function rename_asmdef() {
           local ASMDEF=$1
           local RENAMED_ASMDEF=$2
-
+          
+          echo "Renaming $ASMDEF to $RENAMED_ASMDEF"
           mv "$ASMDEF" "$RENAMED_ASMDEF"
           
           if [ -n "$ASMDEF".meta ]; then
