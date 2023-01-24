@@ -62,7 +62,7 @@ runs:
           local NEW_NAME=$2
           local ENV_NAME=$3
           
-          if [ ! -d "$DIRECTORY" ]; then
+          if [ -d "$DIRECTORY" ]; then
             ASEMDEF=$(find "$DIRECTORY" -name "*.asmdef" -type f -quit)
             if [ -n "$ASEMDEF" ]; then
               RENAMED_ASMDEF=$(dirname "$ASEMDEF")/"$NEW_NAME".asmdef
