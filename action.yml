@@ -93,7 +93,7 @@ runs:
 
           OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
 
-          echo $(jq ".name |= \"$ASMDEF_NAME\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
+          echo "`jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
           echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
 
           function update_references() {
@@ -105,7 +105,7 @@ runs:
               value=$(echo $entry | jq -r '.value')
               echo "Index: $index | Value: $value"
               if [ "$value" == "$OLD_REFERENCE" ]; then
-                echo $(jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE") > "$ASMDEF_FILE"
+                echo "`jq '.references[$index] |= "$NEW_REFERENCE"' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
                 break
               fi
             done
