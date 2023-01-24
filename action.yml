@@ -32,16 +32,14 @@ runs:
         if [ -n "${{ inputs.full-name }}" ]; then
           echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
         else
-          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$ASMDEF_BASE_NAME" | tr '[:upper:]' '[:lower:]' | sed -r 's/[^-_\.]//g')
+          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$ASMDEF_BASE_NAME" | tr '[:upper:]' '[:lower:]')
           echo "full-name="$FULL_NAME"" >> $GITHUB_ENV
           echo "full package name was not provided so generated name '$FULL_NAME' will be used"
         fi
       shell: bash
       
     - name: Update package.json
-      run: |
-        echo "Full name: ${{ env.full-name }}"
-        echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ env.package-json-path }}"`" > "${{ env.package-json-path }}"
+      run: echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ env.package-json-path }}"`" > "${{ env.package-json-path }}"
       shell: bash
       
     - name: Rename Assembly Definition Files
