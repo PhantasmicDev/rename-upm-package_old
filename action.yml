@@ -91,7 +91,8 @@ runs:
           local ASMDEF_FILE=$1
           local ASMDEF_NAME=$2
 
-          OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
+          OLD_REFERENCE=$(jq '.name' "$ASMDEF_FILE")
+          OLD_TO_NEW_REFERENCES["$OLD_REFERENCE"]="$ASMDEF_NAME"
 
           echo $(jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE") > "$ASMDEF_FILE"
           echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
