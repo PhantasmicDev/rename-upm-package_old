@@ -102,6 +102,7 @@ runs:
 
             echo "The file to update is $ASMDEF_FILE"
             jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
+              echo "AYOOO"
               index=$(echo $entry | jq '.key')
               value=$(echo $entry | jq -r '.value')
               echo "Index: $index | Value: $value"
