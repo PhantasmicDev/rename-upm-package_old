@@ -91,8 +91,7 @@ runs:
           local ASMDEF_FILE=$1
           local ASMDEF_NAME=$2
 
-          OLD_REFERENCE=$(jq '.name' "$ASMDEF_FILE")
-          OLD_TO_NEW_REFERENCES["$OLD_REFERENCE"]="$ASMDEF_NAME"
+          OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
 
           echo $(jq '.name |= "$ASMDEF_NAME"' "$ASMDEF_FILE") > "$ASMDEF_FILE"
           echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
@@ -112,7 +111,7 @@ runs:
           }
 
           for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
-            NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$key]}
+            NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$OLD_REFERENCE]}
             update_references $OLD_REFERENCE $NEW_REFERENCE
           done
         }
