@@ -100,6 +100,7 @@ runs:
             local OLD_REFERENCE=$1
             local NEW_REFERENCE=$2
 
+            echo "The file to update is $ASMDEF_FILE"
             jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
               index=$(echo $entry | jq '.key')
               value=$(echo $entry | jq -r '.value')
