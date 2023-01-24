@@ -46,9 +46,8 @@ runs:
       run: |
         function rename_asmdef() {
           local ASMDEF=$1
-          local NEW_NAME=$2
-          
-          RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
+          local RENAMED_ASMDEF=$2
+
           mv "$ASMDEF" "$RENAMED_ASMDEF"
           
           if [ -n "$ASMDEF".meta ]; then
@@ -56,41 +55,31 @@ runs:
           else
             echo "Notice: No '.meta' file for "$ASMDEF" was found to rename." >&2
           fi
-            
-          echo "$RENAMED_ASMDEF"
         }
         
-        # Wrap something like this in a function
-        RUNTIME_DIRECTORY="${{ inputs.package-root-path }}"/Runtime
-        if [ -d "$RUNTIME_DIRECTORY" ]; then
-          RUNTIME_ASMDEF=$(find "$RUNTIME_DIRECTORY" -name "*.asmdef" -type f -quit)
-          if [ -n "$RUNTIME_ASMDEF" ]; then
-            echo "runtime-asmdef=$(rename_asmdef "$RUNTIME_ASMDEF" "${{ env.runtime-asmdef-name }}")" >> $GITHUB_ENV
+        function find_and_rename_asmdef() {
+          local DIRECTORY=$1
+          local NEW_NAME=$2
+          local ENV_NAME=$3
+          
+          if [ ! -d "$DIRECTORY" ]; then
+            ASEMDEF=$(find "$DIRECTORY" -name "*.asmdef" -type f -quit)
+            if [ -n "$ASEMDEF" ]; then
+              RENAMED_ASMDEF=$(dirname "$ASEMDEF")/"$NEW_NAME".asmdef
+              rename_asmdef "$ASMDEF" "$RENAMED_ASMDEF"
+              echo "$ENV_NAME=$RENAMED_ASMDEF" >> $GITHUB_ENV
+            else
+              echo "Notice: Expected '.asmdef' files was not found in directory '$DIRECTORY'."
+            fi
           else
-            echo 'Notice: No Runtime assembly definition file was found.'
+            echo "Notice: Directory expected to contain a '.asmdef' file, '$DIRECTORY' does not exits."
           fi
-        fi
+        }
         
-        EDITOR_ASMDEF=$(find "${{ inputs.package-root-path }}"/Editor -name "*.asmdef" -type f -quit)
-        if [ -n "$EDITOR_ASMDEF" ]; then
-          echo "editor-asmdef=$(rename_asmdef "$EDITOR_ASMDEF" "${{ env.editor-asmdef-name }}")" >> $GITHUB_ENV
-        else
-          echo 'Notice: No Editor assembly definition file was found.'
-        fi
-        
-        RUNTIME_TESTS_ASMDEF=$(find "${{ inputs.package-root-path }}"/Tests/Runtime -name "*.asmdef" -type f -quit)
-        if [ -n "$RUNTIME_TESTS_ASMDEF" ]; then
-          echo "runtime-tests-asmdef=$(rename_asmdef "$RUNTIME_TESTS_ASMDEF" "${{ env.runtime-tests-asmdef-name }}")" >> $GITHUB_ENV
-        else
-          echo 'Notice: No Runtime Tests assembly definition file was found.'
-        fi
-        
-        EDITOR_TESTS_ASMDEF=$(find "${{ inputs.package-root-path }}"/Tests/Editor -name "*.asmdef" -type f -quit)
-        if [ -n "$EDITOR_TESTS_ASMDEF" ]; then
-          echo "editor-tests-asmdef=$(rename_asmdef "$EDITOR_TESTS_ASMDEF" "${{ env.editor-tests-asmdef-name }}")" >> $GITHUB_ENV
-        else
-          echo 'Notice: No Editor Tests assembly definition file was found.'
-        fi
+        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Runtime" "${{ env.runtime-asmdef-name }}" "runtime-asmdef"
+        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Editor" "${{ env.editor-asmdef-name }}" "editor-asmdef"
+        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Tests/Runtime" "${{ env.runtime-tests-asmdef-name }}" "runtime-tests-asmdef"
+        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Tests/Editor" "${{ env.editor-tests-asmdef-name }}" "editor-tests-asmdef"
       shell: bash
       
     - name: Update Assembly Definition Files
