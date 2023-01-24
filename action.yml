@@ -63,7 +63,7 @@ runs:
           local ENV_NAME=$3
           
           if [ -d "$DIRECTORY" ]; then
-            ASEMDEF=$(find "$DIRECTORY" -name "*.asmdef" -type f -quit)
+            ASEMDEF=$(find "$DIRECTORY" -maxdepth 1 -name "*.asmdef" -type f -print -quit)
             if [ -n "$ASEMDEF" ]; then
               RENAMED_ASMDEF=$(dirname "$ASEMDEF")/"$NEW_NAME".asmdef
               rename_asmdef "$ASMDEF" "$RENAMED_ASMDEF"
