@@ -101,7 +101,7 @@ runs:
             local NEW_REFERENCE=$2
 
             echo "The file to update is $ASMDEF_FILE"
-            jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
+            jq -c '.references | to_entries[]' "Runtime/DunderMifflin.SuperPackage.asmdef" | while read -r entry; do
               echo "AYOOO"
               index=$(echo $entry | jq '.key')
               value=$(echo $entry | jq -r '.value')
