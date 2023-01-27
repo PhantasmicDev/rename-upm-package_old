@@ -1,139 +1,29 @@
-name: 'Rename UPM Package'
-author: 'PhantasmicDev'
-description: 'Renames and edits files to reflect a name change in package.'
+name: "Rename UPM Package"
+author: "PhantasmicDev"
+description: "Renames and edits files to reflect a name change in package."
 branding:
-  icon: 'edit-3'
-  color: 'gray-dark'
-  
+  icon: "edit-3"
+  color: "gray-dark"
+
 inputs:
   company-name:
+    description: "The company name."
     required: true
   package-name:
+    description: "The diplay name for your package."
     required: true
   package-root-path:
-    default: '.'
-  full-name:
-    required: false
+    description: "Path to the root folder of your package."
+    default: "."
   domain-extension:
-    default: 'com'
+    description: "The desired domain extension to use for the package's name in reverse domain name notation."
+    default: "com"
+  full-name:
+    description: "The desired full name for the package with the naming convetion of 'com.mycompany.mypackage'. If it isn't provided, it will be generated using the provided 'domain-extension', 'company-name' and 'package-name'."
+    required: false
 
 runs:
   using: "composite"
   steps:
-    - name: Gather Names
-      run: |
-        ASMDEF_BASE_NAME=$(echo "${{ inputs.company-name }}"."${{ inputs.package-name }}" | sed 's/ //g')
-        echo "runtime-asmdef-name="$ASMDEF_BASE_NAME"" >> $GITHUB_ENV
-        echo "editor-asmdef-name="$ASMDEF_BASE_NAME".Editor" >> $GITHUB_ENV
-        echo "runtime-tests-asmdef-name="$ASMDEF_BASE_NAME".Tests" >> $GITHUB_ENV
-        echo "editor-tests-asmdef-name="$ASMDEF_BASE_NAME".Editor.Tests" >> $GITHUB_ENV
-        echo "package-json-path="${{ inputs.package-root-path }}"/package.json" >> $GITHUB_ENV
-        
-        if [ -n "${{ inputs.full-name }}" ]; then
-          echo "full-name="${{ inputs.full-name }}"" >> $GITHUB_ENV
-        else
-          FULL_NAME=$(echo "${{ inputs.domain-extension }}"."$ASMDEF_BASE_NAME" | tr '[:upper:]' '[:lower:]')
-          echo "full-name="$FULL_NAME"" >> $GITHUB_ENV
-          echo "full package name was not provided so generated name '$FULL_NAME' will be used"
-        fi
-      shell: bash
-      
-    - name: Update package.json
-      run: echo "`jq '.name="${{ env.full-name }}" | .displayName="${{ inputs.package-name }}"' "${{ env.package-json-path }}"`" > "${{ env.package-json-path }}"
-      shell: bash
-      
-    - name: Rename Assembly Definition Files
-      run: |
-        function rename_asmdef() {
-          local ASMDEF=$1
-          local RENAMED_ASMDEF=$2
-          
-          echo "Renaming $ASMDEF to $RENAMED_ASMDEF"
-          mv "$ASMDEF" "$RENAMED_ASMDEF"
-          
-          if [ -n "$ASMDEF".meta ]; then
-            mv "$ASMDEF".meta "$RENAMED_ASMDEF".meta
-          else
-            echo "Notice: No '.meta' file for "$ASMDEF" was found to rename." >&2
-          fi
-        }
-        
-        function find_and_rename_asmdef() {
-          local DIRECTORY=$1
-          local NEW_NAME=$2
-          local ENV_NAME=$3
-          
-          if [ -d "$DIRECTORY" ]; then
-            ASMDEF=$(find "$DIRECTORY" -maxdepth 1 -name "*.asmdef" -type f -print -quit)
-            if [ -n "$ASMDEF" ]; then
-              RENAMED_ASMDEF=$(dirname "$ASMDEF")/"$NEW_NAME".asmdef
-              rename_asmdef "$ASMDEF" "$RENAMED_ASMDEF"
-              echo "$ENV_NAME=$RENAMED_ASMDEF" >> $GITHUB_ENV
-            else
-              echo "Notice: Expected '.asmdef' files was not found in directory '$DIRECTORY'."
-            fi
-          else
-            echo "Notice: Directory expected to contain a '.asmdef' file, '$DIRECTORY' does not exits."
-          fi
-        }
-        
-        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Runtime" "${{ env.runtime-asmdef-name }}" "runtime-asmdef"
-        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Editor" "${{ env.editor-asmdef-name }}" "editor-asmdef"
-        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Tests/Runtime" "${{ env.runtime-tests-asmdef-name }}" "runtime-tests-asmdef"
-        find_and_rename_asmdef ""${{ inputs.package-root-path }}"/Tests/Editor" "${{ env.editor-tests-asmdef-name }}" "editor-tests-asmdef"
-      shell: bash
-      
-    - name: Update Assembly Definition Files
-      run: |
-        declare -A OLD_TO_NEW_REFERENCES
-
-        function update_asmdef() {
-          local ASMDEF_FILE=$1
-          local ASMDEF_NAME=$2
-
-          OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
-
-          jq --arg name "$ASMDEF_NAME" '.name = $name' "$ASMDEF_FILE" > "$ASMDEF_FILE"
-          echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
-
-          function update_references() {
-            local OLD_REFERENCE=$1
-            local NEW_REFERENCE=$2
-
-            jq -c '.references | to_entries[]' "$ASMDEF_FILE" | while read -r entry; do
-              index=$(echo $entry | jq '.key')
-              value=$(echo $entry | jq -r '.value')
-              echo "Index: $index | Value: $value"
-              if [ "$value" == "$OLD_REFERENCE" ]; then
-                echo "`jq '.references[$index] |= "$NEW_REFERENCE"' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
-                break
-              fi
-            done
-          }
-          
-          if ! jq -e 'has("references")' "$ASMDEF_FILE"; then
-            return
-          fi
-          
-          for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
-            NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$OLD_REFERENCE]}
-            update_references $OLD_REFERENCE $NEW_REFERENCE
-          done
-        }
-
-        if [ -n "${{ env.runtime-asmdef }}" ]; then
-          update_asmdef "${{ env.runtime-asmdef }}" "${{ env.runtime-asmdef-name }}"
-        fi
-
-        if [ -n "${{ env.editor-asmdef }}" ]; then
-          update_asmdef "${{ env.editor-asmdef }}" "${{ env.editor-asmdef-name }}"
-        fi
-
-        if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-          update_asmdef "${{ env.runtime-tests-asmdef }}" "${{ env.runtime-tests-asmdef-name }}"
-        fi
-
-        if [ -n "${{ env.runtime-tests-asmdef }}" ]; then
-          update_asmdef "${{ env.editor-tests-asmdef }}" "${{ env.editor-tests-asmdef-name }}"
-        fi
+    - run: bash $GITHUB_ACTION_PATH/rename-package.sh "${{ inputs.company-name }}" "${{ inputs.package-name }}" "${{ inputs.package-root-path }}" "${{ inputs.domain-extension }}" "${{ inputs.full-name }}"
       shell: bash
