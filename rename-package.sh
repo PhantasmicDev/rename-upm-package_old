@@ -13,7 +13,7 @@ else
 	echo "full package name was not provided so generated name '$FULL_NAME' will be used"
 fi
 
-echo "`jq '.name = "$FULL_NAME" | .displayName = "$2"' "$PACKAGE_JSON_PATH"`" > "$PACKAGE_JSON_PATH"
+jq ".name = \"$FULL_NAME\" | .displayName = \"$2\"" "$PACKAGE_JSON_PATH" > temp.json && mv temp.json "$PACKAGE_JSON_PATH"
 
 function rename_asmdef() {
 	local ASMDEF=$1
@@ -60,8 +60,7 @@ function update_asmdef() {
 
 	OLD_TO_NEW_REFERENCES["$(jq '.name' "$ASMDEF_FILE")"]="$ASMDEF_NAME"
 
-	#jq --arg name "$ASMDEF_NAME" '.name = $name' "$ASMDEF_FILE" > "$ASMDEF_FILE"
-	echo "`jq '.name = "$ASMDEF_NAME"' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
+	jq ".name = \"$ASMDEF_NAME\"" "$ASMDEF_FILE" > temp.json && mv temp.json "$ASMDEF_FILE"
 	echo "Updated name entry of "$ASMDEF_FILE" to "$ASMDEF_NAME""
 
 	function update_references() {
@@ -73,7 +72,7 @@ function update_asmdef() {
 		value=$(echo $entry | jq -r '.value')
 
 		if [ "$value" == "$OLD_REFERENCE" ]; then
-			echo "`jq '.references[$index] |= "$NEW_REFERENCE"' "$ASMDEF_FILE"`" > "$ASMDEF_FILE"
+			jq ".references[$index] |= \"$NEW_REFERENCE\"" "$ASMDEF_FILE" > temp.json && mv temp.json "$ASMDEF_FILE"
 			break
 		fi
 	done
@@ -83,6 +82,7 @@ function update_asmdef() {
 
 	for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
 		NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$OLD_REFERENCE]}
+		OLD_REFERENCE=$(echo "$OLD_REFERENCE" | tr -d '"')
 		update_references $OLD_REFERENCE $NEW_REFERENCE
 	done
 }
