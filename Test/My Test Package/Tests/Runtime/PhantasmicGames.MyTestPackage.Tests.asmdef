@@ -1,7 +1,9 @@
 {
-    "name": "PhantasmicGames.MyTestPackage",
+    "name": "PhantasmicGames.MyTestPackage.Tests",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "PhantasmicGames.MyTestPackage"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

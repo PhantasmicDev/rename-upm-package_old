@@ -1,6 +1,5 @@
 {
   "name": "com.phantasmicgames.mytestpackage",
   "version": "0.0.0",
-  "displayName": "My Test Package",
-  "documentationUrl": "https://google.com/"
+  "displayName": "My Test Package"
 }
