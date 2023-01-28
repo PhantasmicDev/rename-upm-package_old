@@ -79,7 +79,7 @@ function update_asmdef() {
 	done
 	}
 
-	if [ ! jq -e 'has("references")' "$ASMDEF_FILE" ]; then return; fi
+	if ! jq -e 'has("references")' "$ASMDEF_FILE"; then return; fi
 
 	for OLD_REFERENCE in "${!OLD_TO_NEW_REFERENCES[@]}"; do
 		NEW_REFERENCE=${OLD_TO_NEW_REFERENCES[$OLD_REFERENCE]}
