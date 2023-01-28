@@ -1,4 +1,4 @@
-# $1 = company-name, $2 = package-name, $3 = package-root-path, $4 = domain-extension $5 = full name
+# $1 = company-name, $2 = package-name, $3 = package-root-path, $4 = domain-extension, $5 = full name
 
 RUNTIME_ASMDEF_NAME=$(echo "$1"."$2" | sed 's/ //g')
 EDITOR_ASMDEF_NAME="$RUNTIME_ASMDEF_NAME".Editor

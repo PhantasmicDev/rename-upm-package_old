@@ -15,9 +15,9 @@ jobs:
         with:
           company-name: "Kool Kompany"
           package-name: "Kool Pakege"
-          package-root-path: "Test/My Test Package"
+          package-root-path: "My-Test-Package"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          path: "Test/My Test Package"
+          path: "My-Test-Package"
