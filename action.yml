@@ -12,18 +12,18 @@ inputs:
   package-name:
     description: "The diplay name for the package."
     required: true
-  package-root-path:
-    description: "The path to the root folder of your package."
-    default: "${{ github.workspace }}"
   domain-extension:
     description: "The domain name to use when generating the full package name if 'full-name' input is not provided."
     default: "com"
   full-name:
     description: "The desired full name for the package with the naming convetion of 'com.mycompany.mypackage'. If it isn't provided, it will be generated using the provided 'domain-extension', 'company-name' and 'package-name'."
     required: false
+  package-root-path:
+    description: "The path to the root folder of your package."
+    default: "${{ github.workspace }}"
 
 runs:
   using: "composite"
   steps:
-    - run: bash $GITHUB_ACTION_PATH/rename-package.sh "${{ inputs.company-name }}" "${{ inputs.package-name }}" "${{ inputs.package-root-path }}" "${{ inputs.domain-extension }}" "${{ inputs.full-name }}"
+    - run: bash $GITHUB_ACTION_PATH/rename-package.sh "${{ inputs.company-name }}" "${{ inputs.package-name }}" "${{ inputs.domain-extension }}" "${{ inputs.full-name }}" "${{ inputs.package-root-path }}"
       shell: bash
