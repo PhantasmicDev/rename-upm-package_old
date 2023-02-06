@@ -14,7 +14,7 @@ inputs:
     required: true
   package-root-path:
     description: "The path to the root folder of your package."
-    default: "."
+    default: "${{ github.workspace }}"
   domain-extension:
     description: "The domain name to use when generating the full package name if 'full-name' input is not provided."
     default: "com"
