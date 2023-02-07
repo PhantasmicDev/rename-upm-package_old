@@ -1,15 +1,15 @@
-# $1 = company-name, $2 = package-name, $3 = package-root-path, $4 = domain-extension, $5 = full name
+# $1 = company-name, $2 = package-name, $3 = domain-extension, $4 = full name, $5 = package-root-path
 
 RUNTIME_ASMDEF_NAME=$(echo "$1"."$2" | sed 's/ //g')
 EDITOR_ASMDEF_NAME="$RUNTIME_ASMDEF_NAME".Editor
 RUNTIME_TESTS_ASMDEF_NAME="$RUNTIME_ASMDEF_NAME".Tests
 EDITOR_TESTS_ASMDEF_NAME="$RUNTIME_ASMDEF_NAME".Editor.Tests
-PACKAGE_JSON_PATH="$3"/package.json
+PACKAGE_JSON_PATH="$5"/package.json
 
-if [ -n "$5" ]; then
-	FULL_NAME="$5"
+if [ -n "$4" ]; then
+	FULL_NAME="$4"
 else
-	FULL_NAME=$(echo "$4"."$RUNTIME_ASMDEF_NAME" | tr '[:upper:]' '[:lower:]')
+	FULL_NAME=$(echo "$3"."$RUNTIME_ASMDEF_NAME" | tr '[:upper:]' '[:lower:]')
 	echo "full package name was not provided so generated name '$FULL_NAME' will be used"
 fi
 
@@ -47,10 +47,10 @@ function find_and_rename_asmdef() {
 	fi
 }
 
-RUNTIME_ASMDEF=$(find_and_rename_asmdef "$3"/Runtime "$RUNTIME_ASMDEF_NAME")
-EDITOR_ASMDEF=$(find_and_rename_asmdef "$3"/Editor "$EDITOR_ASMDEF_NAME")
-RUNTIME_TESTS_ASMDEF=$(find_and_rename_asmdef "$3"/Tests/Runtime "$RUNTIME_TESTS_ASMDEF_NAME")
-EDITOR_TESTS_ASMDEF=$(find_and_rename_asmdef "$3"/Tests/Editor "$EDITOR_TESTS_ASMDEF_NAME")
+RUNTIME_ASMDEF=$(find_and_rename_asmdef "$5"/Runtime "$RUNTIME_ASMDEF_NAME")
+EDITOR_ASMDEF=$(find_and_rename_asmdef "$5"/Editor "$EDITOR_ASMDEF_NAME")
+RUNTIME_TESTS_ASMDEF=$(find_and_rename_asmdef "$5"/Tests/Runtime "$RUNTIME_TESTS_ASMDEF_NAME")
+EDITOR_TESTS_ASMDEF=$(find_and_rename_asmdef "$5"/Tests/Editor "$EDITOR_TESTS_ASMDEF_NAME")
 
 declare -A OLD_TO_NEW_REFERENCES
 
