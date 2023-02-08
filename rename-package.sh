@@ -10,7 +10,7 @@ if [ -n "$4" ]; then
 	FULL_NAME="$4"
 else
 	FULL_NAME=$(echo "$3"."$RUNTIME_ASMDEF_NAME" | tr '[:upper:]' '[:lower:]')
-	echo "full package name was not provided so generated name '$FULL_NAME' will be used"
+	echo "Notice: Full package name was not provided so generated name '$FULL_NAME' will be used"
 fi
 
 jq ".name = \"$FULL_NAME\" | .displayName = \"$2\"" "$PACKAGE_JSON_PATH" > temp.json && mv temp.json "$PACKAGE_JSON_PATH"
