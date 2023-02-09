@@ -51,9 +51,11 @@ An action that will edit and rename files to reflect a name change in your [cust
     workflow_dispatch:
       inputs:
         company-name:
+          description: Company Name
           type: string
           required: true
         package-name:
+          description: Package Name
           type: string
           required: true
   
