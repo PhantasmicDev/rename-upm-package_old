@@ -2,6 +2,18 @@ name: Rename Test
 
 on:
   workflow_dispatch:
+    inputs:
+      company-name:
+        description: Company Name
+        type: string
+        required: true
+      package-name:
+        description: Package Name
+        type: string
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   Rename:
@@ -13,11 +25,13 @@ jobs:
       - name: Rename Package
         uses: PhantasmicDev/rename-upm-package@main
         with:
-          company-name: "Kool Kompany"
-          package-name: "Kool Pakege"
+          company-name: "${{ inputs.company-name }}"
+          package-name: "${{ inputs.package-name }}"
           package-root-path: "My-Test-Package"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+      - name: Commit and Push
+        uses: EndBug/add-and-commit@v9.1.1
         with:
-          path: "My-Test-Package"
+          message: Renamed Package
+          committer_name: GitHub Actions
+          committer_email: 41898282+github-actions[bot]@users.noreply.github.com
