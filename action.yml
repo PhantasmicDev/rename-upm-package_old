@@ -1,6 +1,6 @@
 name: "Rename UPM Package"
 author: "PhantasmicDev"
-description: "Renames and edits files to reflect a name change in package."
+description: "Renames and edits files to reflect a name change in upm package."
 branding:
   icon: "edit-3"
   color: "gray-dark"
